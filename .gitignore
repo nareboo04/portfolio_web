@@ -2,7 +2,7 @@
 .env.local
 .env.production
 .env.secrets
-.claude
+.claude/settings.json
 node_modules/
 .next/
 dist-scripts/
