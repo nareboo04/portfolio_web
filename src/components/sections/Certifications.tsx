@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/cn'
-import { useAuth } from '@/components/providers/AuthProvider'
-import type { Certification } from '@/types'
+import InlineEditor from '@/components/admin/InlineEditor'
+import type { Certification, SiteContent } from '@/types'
 
 interface CertificationsProps {
   certs: Certification[]
@@ -14,6 +14,9 @@ interface CertificationsProps {
   onDelete?: (id: number) => void
   onAdd?: () => void
   onReordered?: (items: Certification[]) => void
+  content?: SiteContent
+  onContentChange?: (key: string, value: string) => void
+  csrfToken?: string | null
 }
 
 function formatDate(date: string | null): string {
@@ -21,8 +24,7 @@ function formatDate(date: string | null): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-export default function Certifications({ certs, isEditMode, onEdit, onDelete, onAdd, onReordered }: CertificationsProps) {
-  const { csrfToken } = useAuth()
+export default function Certifications({ certs, isEditMode, onEdit, onDelete, onAdd, onReordered, content, onContentChange, csrfToken }: CertificationsProps) {
   const [saving, setSaving] = useState(false)
 
   if (!isEditMode && certs.length === 0) return null
@@ -62,9 +64,9 @@ export default function Certifications({ certs, isEditMode, onEdit, onDelete, on
   return (
     <section id="certifications" className="py-24 bg-zinc-50/50 dark:bg-zinc-900/50">
       <div className="section-container">
-        <p className="text-brand-500 font-mono font-medium mb-2">What I&apos;ve Earned</p>
+        <InlineEditor value={content?.certifications_label ?? "What I've Earned"} fieldKey="certifications_label" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="text-brand-500 font-mono font-medium mb-2" />
         <div className="flex flex-wrap items-end gap-4 mb-2">
-          <h2 className="section-heading">Certifications &amp; Achievements</h2>
+          <InlineEditor value={content?.certifications_heading ?? 'Certifications & Achievements'} fieldKey="certifications_heading" enabled={!!isEditMode} onChange={onContentChange} tag="h2" className="section-heading" />
           {isEditMode && (
             <div className="ml-auto flex items-center gap-3">
               {saving && <span className="text-xs text-zinc-400 animate-pulse">Saving order…</span>}
@@ -72,7 +74,7 @@ export default function Certifications({ certs, isEditMode, onEdit, onDelete, on
             </div>
           )}
         </div>
-        <p className="section-subheading mb-10">Certifications and credentials I&apos;ve obtained.</p>
+        <InlineEditor value={content?.certifications_subheading ?? "Certifications and credentials I've obtained."} fieldKey="certifications_subheading" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="section-subheading mb-10" multiline />
 
         {isEditMode ? (
           /* ── Edit mode: vertical draggable list ── */

@@ -25,7 +25,25 @@ INSERT INTO `site_content` (`key`, `value`) VALUES
   ('about_linkedin',   'https://linkedin.com/in/yourusername'),
   ('about_resume_url', '/resume.pdf'),
   ('meta_title',       'Your Name — Portfolio'),
-  ('meta_description', 'Personal portfolio of Your Name, a full-stack developer.')
+  ('meta_description', 'Personal portfolio of Your Name, a full-stack developer.'),
+  ('skills_label',              'What I Work With'),
+  ('skills_heading',            'Skills & Technologies'),
+  ('skills_subheading',         'A curated list of tools and technologies I use to bring ideas to life.'),
+  ('timeline_label',            'My Journey'),
+  ('timeline_heading',          'Experience & Education'),
+  ('timeline_subheading',       'The milestones that shaped my career.'),
+  ('projects_label',            'What I''ve Built'),
+  ('projects_heading',          'Projects'),
+  ('projects_subheading',       'A selection of projects I''ve worked on.'),
+  ('certifications_label',      'What I''ve Earned'),
+  ('certifications_heading',    'Certifications & Achievements'),
+  ('certifications_subheading', 'Certifications and credentials I''ve obtained.'),
+  ('activities_label',          'Beyond the Code'),
+  ('activities_heading',        'Activities'),
+  ('activities_subheading',     'Volunteering, awards, publications, and other activities.'),
+  ('contact_label',             'Get In Touch'),
+  ('contact_heading',           'Contact Me'),
+  ('contact_subheading',        'Have a project in mind or just want to say hello? I''d love to hear from you.')
 ON DUPLICATE KEY UPDATE `key` = `key`;
 
 -- ─────────────────────────────────────────────

@@ -5,8 +5,8 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/cn'
 import Modal from '@/components/ui/Modal'
-import { useAuth } from '@/components/providers/AuthProvider'
-import type { Skill } from '@/types'
+import InlineEditor from '@/components/admin/InlineEditor'
+import type { Skill, SiteContent } from '@/types'
 
 interface SkillsProps {
   skills: Skill[]
@@ -15,6 +15,9 @@ interface SkillsProps {
   onDelete?: (id: number) => void
   onAdd?: () => void
   onReordered?: (items: Skill[]) => void
+  content?: SiteContent
+  onContentChange?: (key: string, value: string) => void
+  csrfToken?: string | null
 }
 
 const CATEGORIES = ['all', 'frontend', 'backend', 'database', 'devops', 'other'] as const
@@ -203,8 +206,7 @@ function SkillCard({ skill, isEditMode, onEdit, onDelete }: SkillCardProps) {
   )
 }
 
-export default function Skills({ skills, isEditMode, onEdit, onDelete, onAdd, onReordered }: SkillsProps) {
-  const { csrfToken } = useAuth()
+export default function Skills({ skills, isEditMode, onEdit, onDelete, onAdd, onReordered, content, onContentChange, csrfToken }: SkillsProps) {
   const [active,  setActive]  = useState<Category>('all')
   const [saving,  setSaving]  = useState(false)
 
@@ -242,9 +244,9 @@ export default function Skills({ skills, isEditMode, onEdit, onDelete, onAdd, on
   return (
     <section id="skills" className="py-24 bg-zinc-50/50 dark:bg-zinc-900/50">
       <div className="section-container">
-        <p className="text-brand-500 font-mono font-medium mb-2">What I Work With</p>
-        <h2 className="section-heading mb-2">Skills &amp; Technologies</h2>
-        <p className="section-subheading mb-10">A curated list of tools and technologies I use to bring ideas to life.</p>
+        <InlineEditor value={content?.skills_label ?? 'What I Work With'} fieldKey="skills_label" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="text-brand-500 font-mono font-medium mb-2" />
+        <InlineEditor value={content?.skills_heading ?? 'Skills & Technologies'} fieldKey="skills_heading" enabled={!!isEditMode} onChange={onContentChange} tag="h2" className="section-heading mb-2" />
+        <InlineEditor value={content?.skills_subheading ?? 'A curated list of tools and technologies I use to bring ideas to life.'} fieldKey="skills_subheading" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="section-subheading mb-10" multiline />
 
         {/* Filter bar + Add button */}
         <div className="flex flex-wrap items-center gap-2 mb-10">

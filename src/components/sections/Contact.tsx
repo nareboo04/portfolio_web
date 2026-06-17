@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import InlineEditor from '@/components/admin/InlineEditor'
+import type { SiteContent } from '@/types'
 
 declare global {
   interface Window {
@@ -12,7 +14,13 @@ declare global {
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''
 
-export default function Contact() {
+interface ContactProps {
+  isEditMode?: boolean
+  content?: SiteContent
+  onContentChange?: (key: string, value: string) => void
+}
+
+export default function Contact({ isEditMode, content, onContentChange }: ContactProps = {}) {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -98,11 +106,9 @@ export default function Contact() {
     <section id="contact" className="py-24">
       <div className="section-container">
         <div className="max-w-2xl mx-auto">
-          <p className="text-brand-500 font-mono font-medium mb-2 text-center">Get In Touch</p>
-          <h2 className="section-heading mb-2 text-center">Contact Me</h2>
-          <p className="section-subheading mb-10 text-center mx-auto">
-            Have a project in mind or just want to say hello? I&apos;d love to hear from you.
-          </p>
+          <InlineEditor value={content?.contact_label ?? 'Get In Touch'} fieldKey="contact_label" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="text-brand-500 font-mono font-medium mb-2 text-center" />
+          <InlineEditor value={content?.contact_heading ?? 'Contact Me'} fieldKey="contact_heading" enabled={!!isEditMode} onChange={onContentChange} tag="h2" className="section-heading mb-2 text-center" />
+          <InlineEditor value={content?.contact_subheading ?? "Have a project in mind or just want to say hello? I'd love to hear from you."} fieldKey="contact_subheading" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="section-subheading mb-10 text-center mx-auto" multiline />
 
           <form onSubmit={handleSubmit} className="card p-8 space-y-5" noValidate>
             <div className="grid sm:grid-cols-2 gap-5">

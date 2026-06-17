@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/cn'
-import { useAuth } from '@/components/providers/AuthProvider'
-import type { TimelineEntry } from '@/types'
+import InlineEditor from '@/components/admin/InlineEditor'
+import type { TimelineEntry, SiteContent } from '@/types'
 
 interface TimelineProps {
   entries: TimelineEntry[]
@@ -14,6 +14,9 @@ interface TimelineProps {
   onDelete?: (id: number) => void
   onAdd?: () => void
   onReordered?: (items: TimelineEntry[]) => void
+  content?: SiteContent
+  onContentChange?: (key: string, value: string) => void
+  csrfToken?: string | null
 }
 
 function formatDate(date: string | null, _current: boolean): string {
@@ -21,8 +24,7 @@ function formatDate(date: string | null, _current: boolean): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-export default function Timeline({ entries, isEditMode, onEdit, onDelete, onAdd, onReordered }: TimelineProps) {
-  const { csrfToken } = useAuth()
+export default function Timeline({ entries, isEditMode, onEdit, onDelete, onAdd, onReordered, content, onContentChange, csrfToken }: TimelineProps) {
   const [active,  setActive]  = useState<'all' | 'experience' | 'education'>('all')
   const [saving,  setSaving]  = useState(false)
 
@@ -59,9 +61,9 @@ export default function Timeline({ entries, isEditMode, onEdit, onDelete, onAdd,
   return (
     <section id="timeline" className="py-24">
       <div className="section-container">
-        <p className="text-brand-500 font-mono font-medium mb-2">My Journey</p>
-        <h2 className="section-heading mb-2">Experience &amp; Education</h2>
-        <p className="section-subheading mb-10">The milestones that shaped my career.</p>
+        <InlineEditor value={content?.timeline_label ?? 'My Journey'} fieldKey="timeline_label" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="text-brand-500 font-mono font-medium mb-2" />
+        <InlineEditor value={content?.timeline_heading ?? 'Experience & Education'} fieldKey="timeline_heading" enabled={!!isEditMode} onChange={onContentChange} tag="h2" className="section-heading mb-2" />
+        <InlineEditor value={content?.timeline_subheading ?? 'The milestones that shaped my career.'} fieldKey="timeline_subheading" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="section-subheading mb-10" multiline />
 
         {/* Filter tabs + Add button */}
         <div className="flex flex-wrap items-center gap-2 mb-12">

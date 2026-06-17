@@ -234,6 +234,9 @@ export default function Home() {
           onDelete={deleteCert}
           onAdd={openNewCert}
           onReordered={setCertifications}
+          content={content}
+          onContentChange={isEditMode ? handleContentChange : undefined}
+          csrfToken={csrfToken}
         />
 
         <Projects
@@ -243,6 +246,8 @@ export default function Home() {
           onDelete={deleteProject}
           onAdd={openNewProject}
           onReorder={() => setReorderOpen(true)}
+          content={content}
+          onContentChange={isEditMode ? handleContentChange : undefined}
         />
 
         <Skills
@@ -252,6 +257,9 @@ export default function Home() {
           onDelete={deleteSkill}
           onAdd={openNewSkill}
           onReordered={setSkills}
+          content={content}
+          onContentChange={isEditMode ? handleContentChange : undefined}
+          csrfToken={csrfToken}
         />
 
         <Timeline
@@ -261,6 +269,9 @@ export default function Home() {
           onDelete={deleteTimelineEntry}
           onAdd={openNewEntry}
           onReordered={setTimeline}
+          content={content}
+          onContentChange={isEditMode ? handleContentChange : undefined}
+          csrfToken={csrfToken}
         />
 
         <Activities
@@ -270,9 +281,16 @@ export default function Home() {
           onDelete={deleteActivity}
           onAdd={openNewActivity}
           onReordered={setActivities}
+          content={content}
+          onContentChange={isEditMode ? handleContentChange : undefined}
+          csrfToken={csrfToken}
         />
 
-        <Contact />
+        <Contact
+          isEditMode={isEditMode}
+          content={content}
+          onContentChange={isEditMode ? handleContentChange : undefined}
+        />
       </div>
 
       {/* Floating save panel */}

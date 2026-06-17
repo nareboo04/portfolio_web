@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import toast from 'react-hot-toast'
 import Modal from '@/components/ui/Modal'
-import { useAuth } from '@/components/providers/AuthProvider'
-import type { Activity } from '@/types'
+import InlineEditor from '@/components/admin/InlineEditor'
+import type { Activity, SiteContent } from '@/types'
 
 interface ActivitiesProps {
   activities: Activity[]
@@ -14,6 +14,9 @@ interface ActivitiesProps {
   onDelete?: (id: number) => void
   onAdd?: () => void
   onReordered?: (items: Activity[]) => void
+  content?: SiteContent
+  onContentChange?: (key: string, value: string) => void
+  csrfToken?: string | null
 }
 
 const TYPE_LABEL: Record<Activity['type'], string> = {
@@ -77,8 +80,7 @@ function DetailModal({ act, onClose }: { act: Activity; onClose: () => void }) {
   )
 }
 
-export default function Activities({ activities, isEditMode, onEdit, onDelete, onAdd, onReordered }: ActivitiesProps) {
-  const { csrfToken } = useAuth()
+export default function Activities({ activities, isEditMode, onEdit, onDelete, onAdd, onReordered, content, onContentChange, csrfToken }: ActivitiesProps) {
   const [selected, setSelected] = useState<Activity | null>(null)
   const [saving, setSaving]     = useState(false)
 
@@ -119,9 +121,9 @@ export default function Activities({ activities, isEditMode, onEdit, onDelete, o
   return (
     <section id="activities" className="py-24">
       <div className="section-container">
-        <p className="text-brand-500 font-mono font-medium mb-2">Beyond the Code</p>
+        <InlineEditor value={content?.activities_label ?? 'Beyond the Code'} fieldKey="activities_label" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="text-brand-500 font-mono font-medium mb-2" />
         <div className="flex flex-wrap items-end gap-4 mb-2">
-          <h2 className="section-heading">Activities</h2>
+          <InlineEditor value={content?.activities_heading ?? 'Activities'} fieldKey="activities_heading" enabled={!!isEditMode} onChange={onContentChange} tag="h2" className="section-heading" />
           {isEditMode && (
             <div className="ml-auto flex items-center gap-3">
               {saving && <span className="text-xs text-zinc-400 animate-pulse">Saving order…</span>}
@@ -129,7 +131,7 @@ export default function Activities({ activities, isEditMode, onEdit, onDelete, o
             </div>
           )}
         </div>
-        <p className="section-subheading mb-10">Volunteering, awards, publications, and other activities.</p>
+        <InlineEditor value={content?.activities_subheading ?? 'Volunteering, awards, publications, and other activities.'} fieldKey="activities_subheading" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="section-subheading mb-10" multiline />
 
         {isEditMode ? (
           /* ── Edit mode: vertical draggable list ── */

@@ -4,7 +4,8 @@ import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/cn'
 import Modal from '@/components/ui/Modal'
-import type { Project } from '@/types'
+import InlineEditor from '@/components/admin/InlineEditor'
+import type { Project, SiteContent } from '@/types'
 
 interface ProjectsProps {
   projects: Project[]
@@ -13,6 +14,8 @@ interface ProjectsProps {
   onDelete?: (id: number) => void
   onAdd?: () => void
   onReorder?: () => void
+  content?: SiteContent
+  onContentChange?: (key: string, value: string) => void
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -183,7 +186,7 @@ function ProjectDetailModal({ project, onClose }: { project: Project; onClose: (
 
 const ALL_CATEGORIES = 'All'
 
-export default function Projects({ projects, isEditMode, onEdit, onDelete, onAdd, onReorder }: ProjectsProps) {
+export default function Projects({ projects, isEditMode, onEdit, onDelete, onAdd, onReorder, content, onContentChange }: ProjectsProps) {
   const [search, setSearch]     = useState('')
   const [category, setCategory] = useState(ALL_CATEGORIES)
   const [selected, setSelected] = useState<Project | null>(null)
@@ -208,8 +211,8 @@ export default function Projects({ projects, isEditMode, onEdit, onDelete, onAdd
       <div className="section-container">
         <div className="flex flex-wrap items-end gap-4 mb-2">
           <div>
-            <p className="text-brand-500 font-mono font-medium mb-2">What I&apos;ve Built</p>
-            <h2 className="section-heading">Projects</h2>
+            <InlineEditor value={content?.projects_label ?? "What I've Built"} fieldKey="projects_label" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="text-brand-500 font-mono font-medium mb-2" />
+            <InlineEditor value={content?.projects_heading ?? 'Projects'} fieldKey="projects_heading" enabled={!!isEditMode} onChange={onContentChange} tag="h2" className="section-heading" />
           </div>
           {isEditMode && (
             <div className="flex gap-2 ml-auto pb-1">
@@ -218,7 +221,7 @@ export default function Projects({ projects, isEditMode, onEdit, onDelete, onAdd
             </div>
           )}
         </div>
-        <p className="section-subheading mb-10">A selection of projects I&apos;ve worked on.</p>
+        <InlineEditor value={content?.projects_subheading ?? "A selection of projects I've worked on."} fieldKey="projects_subheading" enabled={!!isEditMode} onChange={onContentChange} tag="p" className="section-subheading mb-10" multiline />
 
         {/* Controls */}
         <div className="flex flex-col sm:flex-row gap-4 mb-10">
