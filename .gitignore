@@ -1,10 +1,30 @@
+# ── Secrets & environment ──────────────────────────────────────
 .env
 .env.local
 .env.production
 .env.secrets
-.claude/settings.json
+
+# ── Dependencies ───────────────────────────────────────────────
 node_modules/
+
+# ── Next.js build output ───────────────────────────────────────
 .next/
+out/
 dist-scripts/
+
+# ── TypeScript ─────────────────────────────────────────────────
+tsconfig.tsbuildinfo
+
+# ── Uploads (user-generated files) ────────────────────────────
 public/uploads/
+
+# ── Claude Code project memory ────────────────────────────────
+.claude/
+
+# ── Logs ──────────────────────────────────────────────────────
 *.log
+npm-debug.log*
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
