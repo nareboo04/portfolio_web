@@ -25,11 +25,11 @@ src/
 │   ├── layout.tsx        ← root layout with providers
 │   └── globals.css       ← Tailwind base + custom components/utilities
 ├── components/
-│   ├── admin/            ← AdminBar, InlineEditor, FloatingSavePanel, ProjectModal, MessageCenter, DraggableProjects
+│   ├── admin/            ← AdminBar, InlineEditor, FloatingSavePanel, ProjectModal, MessageCenter, DraggableProjects, SectionReorderModal, Skill/Timeline/Certification/Activity modals
 │   ├── layout/           ← Navbar, Footer
-│   ├── providers/        ← ThemeProvider, AuthProvider
-│   ├── sections/         ← Hero, About, Skills, Timeline, Projects, Contact
-│   └── ui/               ← Modal, Button, DropZone
+│   ├── providers/        ← ThemeProvider, AuthProvider, NavVisibilityProvider
+│   ├── sections/         ← Hero, About, Skills, Timeline, Projects, Certifications, Infrastructure, Activities, Contact
+│   └── ui/               ← Modal, Button, DropZone, ExpandableText
 ├── hooks/useCsrf.ts      ← reads csrf_token cookie for JS calls
 ├── lib/
 │   ├── auth.ts           ← JWT sign/verify, cookie helpers, CSRF generator
@@ -79,4 +79,20 @@ docker compose down -v            # stop + remove volumes
 3. Toggle **Edit Mode** → click any text on the page to edit inline
 4. Floating "Save Changes" panel appears when edits are pending
 5. Use **+ New Project** or **⇅ Reorder** panel for project management
-6. **💬 Messages** opens the message centre modal
+6. **⇅ Sections** opens a drag-drop modal to reorder whole page sections
+7. **💬 Messages** opens the message centre modal
+
+## Content Visibility & Section Order
+- Every entry (skills, timeline, certifications, activities, lab_sections) and each
+  project has a `status ENUM('public','draft','private')`. `draft` and `private` are
+  both hidden from visitors.
+- Filtering is **server-side**: GET routes call `getSession()` and append
+  `WHERE status='public'` for non-admins, so non-public rows never reach a visitor's
+  browser. Admins get all rows (with a Draft/Private badge in edit lists).
+- A section with zero public entries is hidden, and its Navbar link is removed via
+  `NavVisibilityProvider`. Admins always see every section.
+- Page/Navbar section order is stored as comma-separated slugs in
+  `site_content.section_order` (safe from `sanitizeText`, unlike JSON). `page.tsx`
+  renders `sectionOrder.map(...)` with Hero pinned first; `parseSectionOrder` drops
+  unknown slugs and appends any newly-added sections. `section_order` is whitelisted
+  in the `/api/content` PATCH `allowedKeys`.

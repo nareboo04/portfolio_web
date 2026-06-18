@@ -202,7 +202,42 @@ The contact form sends to `CONTACT_TO_EMAIL`. The server at `SMTP_HOST:SMTP_PORT
 4. A floating **Save Changes** panel appears when edits are pending
 5. Use section **+ Add** buttons to create new projects, skills, certifications, etc.
 6. Drag the ⠿ handle (visible in edit mode) to reorder cards in any section
-7. Click **💬 Messages** to view contact form submissions
+7. Click **⇅ Sections** in the admin bar to drag-reorder whole page sections
+8. Click **💬 Messages** to view contact form submissions
+
+---
+
+## Content Visibility (public / draft / private)
+
+Every entry (skill, timeline entry, certification, activity, lab section) and
+each project carries a **status**:
+
+| Status | Visitor sees it? | Admin sees it? |
+|--------|:---------------:|:--------------:|
+| `public`  | ✅ | ✅ |
+| `draft`   | ❌ | ✅ (with badge) |
+| `private` | ❌ | ✅ (with badge) |
+
+- Set per-entry status from the **Visibility** dropdown in each edit modal.
+- Filtering happens **server-side** — draft/private rows are never sent to a
+  logged-out visitor, so they can't be read from the network response.
+- A section with no public entries is hidden automatically, and its **Navbar
+  link disappears** too. Admins always see every section.
+
+---
+
+## Reordering Page Sections
+
+Admins can reorder the whole page (About, Certifications, Lab, Projects, Skills,
+Experience, Activities, Contact). The Hero is always pinned to the top.
+
+1. In the admin bar, click **⇅ Sections**
+2. Drag the sections into the order you want — it saves automatically
+3. The new order applies to **both** the page and the Navbar links
+
+The order is stored as a comma-separated list of section slugs in
+`site_content.section_order`. New sections added in future code are appended to
+the end automatically; unknown slugs are ignored.
 
 ---
 
@@ -216,11 +251,11 @@ src/
 │   ├── api/                  ← REST endpoints
 │   └── uploads/[...path]/    ← file serving
 ├── components/
-│   ├── admin/                ← admin modals and panels
-│   ├── sections/             ← Hero, About, Skills, Timeline, Projects, Certifications, Activities, Contact
+│   ├── admin/                ← admin modals and panels (incl. SectionReorderModal)
+│   ├── sections/             ← Hero, About, Skills, Timeline, Projects, Certifications, Infrastructure, Activities, Contact
 │   ├── layout/               ← Navbar, Footer
-│   ├── providers/            ← ThemeProvider, AuthProvider
-│   └── ui/                   ← Modal, Button, DropZone
+│   ├── providers/            ← ThemeProvider, AuthProvider, NavVisibilityProvider
+│   └── ui/                   ← Modal, Button, DropZone, ExpandableText
 ├── lib/
 │   ├── db.ts                 ← MySQL pool
 │   ├── auth.ts               ← JWT helpers
