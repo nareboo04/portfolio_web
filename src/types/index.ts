@@ -10,6 +10,7 @@ export interface Skill {
   sort_order: number
   icon_url: string | null
   description: string | null
+  status: 'public' | 'draft' | 'private'
 }
 
 export interface TimelineEntry {
@@ -24,6 +25,7 @@ export interface TimelineEntry {
   description: string | null
   pdf_url: string | null
   sort_order: number
+  status: 'public' | 'draft' | 'private'
 }
 
 export interface Project {
@@ -57,6 +59,7 @@ export interface Certification {
   image_url: string | null
   sort_order: number
   created_at: string
+  status: 'public' | 'draft' | 'private'
 }
 
 export interface Activity {
@@ -70,6 +73,24 @@ export interface Activity {
   image_url: string | null
   sort_order: number
   created_at: string
+  status: 'public' | 'draft' | 'private'
+}
+
+export interface LabItem {
+  id: number
+  section_id: number
+  name: string
+  sort_order: number
+}
+
+export interface LabSection {
+  id: number
+  name: string
+  description: string | null
+  image_urls: string[]
+  sort_order: number
+  items: LabItem[]
+  status: 'public' | 'draft' | 'private'
 }
 
 export interface Message {

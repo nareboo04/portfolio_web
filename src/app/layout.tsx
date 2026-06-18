@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { NavVisibilityProvider } from '@/components/providers/NavVisibilityProvider'
 import { Toaster } from 'react-hot-toast'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -20,9 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" crossOrigin="anonymous" precedence="default" />
         <ThemeProvider>
           <AuthProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
+            <NavVisibilityProvider>
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
             <Toaster
               position="bottom-right"
               toastOptions={{
@@ -30,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 duration: 3500,
               }}
             />
+            </NavVisibilityProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

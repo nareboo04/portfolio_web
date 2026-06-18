@@ -22,6 +22,7 @@ const EMPTY = {
   current:      false,
   description:  '',
   pdf_url:      null as string | null,
+  status:       'public' as TimelineEntry['status'],
 }
 
 export default function TimelineModal({ entry, onClose, onSaved }: TimelineModalProps) {
@@ -42,6 +43,7 @@ export default function TimelineModal({ entry, onClose, onSaved }: TimelineModal
         current:      entry.current,
         description:  entry.description ?? '',
         pdf_url:      entry.pdf_url ?? null,
+        status:       entry.status ?? 'public',
       })
     } else {
       setForm({ ...EMPTY })
@@ -197,6 +199,19 @@ export default function TimelineModal({ entry, onClose, onSaved }: TimelineModal
             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
             placeholder="Brief description of your role or studies…"
           />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-zinc-500 mb-1.5">Visibility</label>
+          <select
+            className="input"
+            value={form.status}
+            onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as TimelineEntry['status'] }))}
+          >
+            <option value="public">Public</option>
+            <option value="draft">Draft (hidden from visitors)</option>
+            <option value="private">Private (hidden from visitors)</option>
+          </select>
         </div>
 
         <div>

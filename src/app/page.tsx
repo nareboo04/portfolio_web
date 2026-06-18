@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { useNavVisibility } from '@/components/providers/NavVisibilityProvider'
 import Hero from '@/components/sections/Hero'
 import About from '@/components/sections/About'
 import Skills from '@/components/sections/Skills'
@@ -10,6 +11,7 @@ import Timeline from '@/components/sections/Timeline'
 import Projects from '@/components/sections/Projects'
 import Certifications from '@/components/sections/Certifications'
 import Activities from '@/components/sections/Activities'
+import Infrastructure from '@/components/sections/Infrastructure'
 import Contact from '@/components/sections/Contact'
 import AdminBar from '@/components/admin/AdminBar'
 import ProjectModal from '@/components/admin/ProjectModal'
@@ -20,10 +22,34 @@ import ActivityModal from '@/components/admin/ActivityModal'
 import DraggableProjects from '@/components/admin/DraggableProjects'
 import FloatingSavePanel from '@/components/admin/FloatingSavePanel'
 import Modal from '@/components/ui/Modal'
-import type { SiteContent, Skill, TimelineEntry, Project, Certification, Activity } from '@/types'
+import SectionReorderModal from '@/components/admin/SectionReorderModal'
+import type { SiteContent, Skill, TimelineEntry, Project, Certification, Activity, LabSection } from '@/types'
+
+// Sections the admin can reorder (Hero stays pinned at the top)
+const MOVABLE_SECTIONS: { key: string; label: string }[] = [
+  { key: 'about',          label: 'About' },
+  { key: 'certifications', label: 'Certifications' },
+  { key: 'infrastructure', label: 'Infrastructure & Lab' },
+  { key: 'projects',       label: 'Projects' },
+  { key: 'skills',         label: 'Skills' },
+  { key: 'timeline',       label: 'Experience' },
+  { key: 'activities',     label: 'Activities' },
+  { key: 'contact',        label: 'Contact' },
+]
+const SECTION_KEYS   = MOVABLE_SECTIONS.map((s) => s.key)
+const SECTION_LABELS: Record<string, string> = Object.fromEntries(MOVABLE_SECTIONS.map((s) => [s.key, s.label]))
+
+// Parse stored "a,b,c" order, keep only known keys, append any new/missing sections
+function parseSectionOrder(raw?: string): string[] {
+  const saved   = (raw ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  const valid   = saved.filter((k) => SECTION_KEYS.includes(k))
+  const missing = SECTION_KEYS.filter((k) => !valid.includes(k))
+  return [...valid, ...missing]
+}
 
 export default function Home() {
   const { isAdmin, isEditMode, csrfToken } = useAuth()
+  const { setVisibleSections, setSectionOrder: setNavSectionOrder } = useNavVisibility()
 
   // Data state
   const [content,        setContent]        = useState<SiteContent>({})
@@ -32,6 +58,8 @@ export default function Home() {
   const [projects,       setProjects]       = useState<Project[]>([])
   const [certifications, setCertifications] = useState<Certification[]>([])
   const [activities,     setActivities]     = useState<Activity[]>([])
+  const [labSections,    setLabSections]    = useState<LabSection[]>([])
+  const [sectionOrder,   setSectionOrder]   = useState<string[]>(SECTION_KEYS)
 
   // Inline content edit state
   const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({})
@@ -41,6 +69,7 @@ export default function Home() {
   const [projectModalOpen, setProjectModalOpen] = useState(false)
   const [editingProject,   setEditingProject]   = useState<Project | null>(null)
   const [reorderOpen,      setReorderOpen]       = useState(false)
+  const [sectionReorderOpen, setSectionReorderOpen] = useState(false)
 
   // Skill modal
   const [skillModalOpen, setSkillModalOpen] = useState(false)
@@ -67,13 +96,25 @@ export default function Home() {
       fetch('/api/projects').then((r) => r.json()),
       fetch('/api/certifications').then((r) => r.json()),
       fetch('/api/activities').then((r) => r.json()),
-    ]).then(([c, s, t, p, cert, act]) => {
-      if (c.success)    setContent(c.data)
+      fetch('/api/lab').then((r) => r.json()),
+    ]).then(([c, s, t, p, cert, act, lab]) => {
+      if (c.success)  { setContent(c.data); setSectionOrder(parseSectionOrder(c.data.section_order)) }
       if (s.success)    setSkills(s.data)
       if (t.success)    setTimeline(t.data)
       if (p.success)    setProjects(p.data)
       if (cert.success) setCertifications(cert.data)
       if (act.success)  setActivities(act.data)
+      if (lab.success)  setLabSections(lab.data)
+
+      // Compute which sections have visible content
+      const visible = new Set<string>(['about', 'contact'])
+      if (s.success    && s.data.length > 0)    visible.add('skills')
+      if (t.success    && t.data.length > 0)    visible.add('timeline')
+      if (p.success    && p.data.length > 0)    visible.add('projects')
+      if (cert.success && cert.data.length > 0) visible.add('certifications')
+      if (act.success  && act.data.length > 0)  visible.add('activities')
+      if (lab.success  && lab.data.length > 0)  visible.add('infrastructure')
+      setVisibleSections(visible)
     })
   }, [])
 
@@ -82,6 +123,9 @@ export default function Home() {
     setContent((prev) => ({ ...prev, [key]: value }))
     setPendingChanges((prev) => ({ ...prev, [key]: value }))
   }, [])
+
+  // Keep the navbar link order in sync with the page section order
+  useEffect(() => { setNavSectionOrder(sectionOrder) }, [sectionOrder, setNavSectionOrder])
 
   const hasPending = Object.keys(pendingChanges).length > 0
 
@@ -218,79 +262,108 @@ export default function Home() {
     else toast.error('Delete failed')
   }
 
+  const sectionEls: Record<string, ReactNode> = {
+    about: (
+      <About key="about" content={content} onContentChange={isEditMode ? handleContentChange : undefined} />
+    ),
+    certifications: (
+      <Certifications
+        key="certifications"
+        certs={certifications}
+        isEditMode={isEditMode}
+        onEdit={openEditCert}
+        onDelete={deleteCert}
+        onAdd={openNewCert}
+        onReordered={setCertifications}
+        content={content}
+        onContentChange={isEditMode ? handleContentChange : undefined}
+        csrfToken={csrfToken}
+      />
+    ),
+    infrastructure: (
+      <Infrastructure
+        key="infrastructure"
+        sections={labSections}
+        onSectionsChange={setLabSections}
+        isEditMode={isEditMode}
+        content={content}
+        onContentChange={isEditMode ? handleContentChange : undefined}
+        csrfToken={csrfToken}
+      />
+    ),
+    projects: (
+      <Projects
+        key="projects"
+        projects={projects}
+        isEditMode={isEditMode}
+        onEdit={openEditProject}
+        onDelete={deleteProject}
+        onAdd={openNewProject}
+        onReorder={() => setReorderOpen(true)}
+        content={content}
+        onContentChange={isEditMode ? handleContentChange : undefined}
+      />
+    ),
+    skills: (
+      <Skills
+        key="skills"
+        skills={skills}
+        isEditMode={isEditMode}
+        onEdit={openEditSkill}
+        onDelete={deleteSkill}
+        onAdd={openNewSkill}
+        onReordered={setSkills}
+        content={content}
+        onContentChange={isEditMode ? handleContentChange : undefined}
+        csrfToken={csrfToken}
+      />
+    ),
+    timeline: (
+      <Timeline
+        key="timeline"
+        entries={timeline}
+        isEditMode={isEditMode}
+        onEdit={openEditEntry}
+        onDelete={deleteTimelineEntry}
+        onAdd={openNewEntry}
+        onReordered={setTimeline}
+        content={content}
+        onContentChange={isEditMode ? handleContentChange : undefined}
+        csrfToken={csrfToken}
+      />
+    ),
+    activities: (
+      <Activities
+        key="activities"
+        activities={activities}
+        isEditMode={isEditMode}
+        onEdit={openEditActivity}
+        onDelete={deleteActivity}
+        onAdd={openNewActivity}
+        onReordered={setActivities}
+        content={content}
+        onContentChange={isEditMode ? handleContentChange : undefined}
+        csrfToken={csrfToken}
+      />
+    ),
+    contact: (
+      <Contact
+        key="contact"
+        isEditMode={isEditMode}
+        content={content}
+        onContentChange={isEditMode ? handleContentChange : undefined}
+      />
+    ),
+  }
+
   return (
     <div className={isEditMode ? 'editing-mode' : ''}>
-      {isAdmin && <AdminBar onAddProject={openNewProject} />}
+      {isAdmin && <AdminBar onAddProject={openNewProject} onReorderSections={() => setSectionReorderOpen(true)} />}
 
       <div className={isAdmin ? 'pt-10' : ''}>
-        {/* Section order: Hero → About → Certifications → Projects → Skills → Timeline → Activities → Contact */}
-        <Hero    content={content} onContentChange={isEditMode ? handleContentChange : undefined} />
-        <About   content={content} onContentChange={isEditMode ? handleContentChange : undefined} />
-
-        <Certifications
-          certs={certifications}
-          isEditMode={isEditMode}
-          onEdit={openEditCert}
-          onDelete={deleteCert}
-          onAdd={openNewCert}
-          onReordered={setCertifications}
-          content={content}
-          onContentChange={isEditMode ? handleContentChange : undefined}
-          csrfToken={csrfToken}
-        />
-
-        <Projects
-          projects={projects}
-          isEditMode={isEditMode}
-          onEdit={openEditProject}
-          onDelete={deleteProject}
-          onAdd={openNewProject}
-          onReorder={() => setReorderOpen(true)}
-          content={content}
-          onContentChange={isEditMode ? handleContentChange : undefined}
-        />
-
-        <Skills
-          skills={skills}
-          isEditMode={isEditMode}
-          onEdit={openEditSkill}
-          onDelete={deleteSkill}
-          onAdd={openNewSkill}
-          onReordered={setSkills}
-          content={content}
-          onContentChange={isEditMode ? handleContentChange : undefined}
-          csrfToken={csrfToken}
-        />
-
-        <Timeline
-          entries={timeline}
-          isEditMode={isEditMode}
-          onEdit={openEditEntry}
-          onDelete={deleteTimelineEntry}
-          onAdd={openNewEntry}
-          onReordered={setTimeline}
-          content={content}
-          onContentChange={isEditMode ? handleContentChange : undefined}
-          csrfToken={csrfToken}
-        />
-
-        <Activities
-          activities={activities}
-          isEditMode={isEditMode}
-          onEdit={openEditActivity}
-          onDelete={deleteActivity}
-          onAdd={openNewActivity}
-          onReordered={setActivities}
-          content={content}
-          onContentChange={isEditMode ? handleContentChange : undefined}
-          csrfToken={csrfToken}
-        />
-
-        <Contact
-          isEditMode={isEditMode}
-          content={content}
-          onContentChange={isEditMode ? handleContentChange : undefined}
-        />
+        {/* Hero is pinned first; the rest render in the admin-defined order */}
+        <Hero content={content} onContentChange={isEditMode ? handleContentChange : undefined} />
+        {sectionOrder.map((key) => sectionEls[key])}
       </div>
 
       {/* Floating save panel */}
@@ -358,6 +431,16 @@ export default function Home() {
             onDelete={deleteProject}
           />
         </Modal>
+      )}
+
+      {/* Section reorder modal */}
+      {sectionReorderOpen && (
+        <SectionReorderModal
+          order={sectionOrder}
+          labels={SECTION_LABELS}
+          onClose={() => setSectionReorderOpen(false)}
+          onReordered={setSectionOrder}
+        />
       )}
     </div>
   )

@@ -206,9 +206,16 @@ function SkillCard({ skill, isEditMode, onEdit, onDelete }: SkillCardProps) {
   )
 }
 
+const STATUS_BADGE: Record<string, string> = {
+  draft:   'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  private: 'bg-zinc-200  dark:bg-zinc-700      text-zinc-500  dark:text-zinc-400',
+}
+
 export default function Skills({ skills, isEditMode, onEdit, onDelete, onAdd, onReordered, content, onContentChange, csrfToken }: SkillsProps) {
   const [active,  setActive]  = useState<Category>('all')
   const [saving,  setSaving]  = useState(false)
+
+  if (!isEditMode && skills.length === 0) return null
 
   const filtered = active === 'all' ? skills : skills.filter((s) => s.category === active)
 
@@ -297,6 +304,11 @@ export default function Skills({ skills, isEditMode, onEdit, onDelete, onAdd, on
                             <SkillIcon skill={skill} size={28} />
                           </div>
                           <span className="flex-1 text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">{skill.name}</span>
+                          {skill.status !== 'public' && (
+                            <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0', STATUS_BADGE[skill.status])}>
+                              {skill.status === 'draft' ? 'Draft' : 'Private'}
+                            </span>
+                          )}
                           <span className={cn('tag text-[10px] shrink-0', CAT_COLOR[skill.category])}>
                             {CAT_LABEL[skill.category as Category]}
                           </span>

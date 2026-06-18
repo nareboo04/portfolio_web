@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { CSRF_COOKIE, CSRF_HEADER, generateCsrfToken } from '@/lib/auth'
 
-const PROTECTED_PATHS = ['/api/projects', '/api/skills', '/api/timeline', '/api/content', '/api/messages', '/api/upload', '/api/certifications', '/api/activities']
+const PROTECTED_PATHS = ['/api/projects', '/api/skills', '/api/timeline', '/api/content', '/api/messages', '/api/upload', '/api/certifications', '/api/activities', '/api/lab']
 const ADMIN_PAGE = '/admin'
 
 function isProtectedApi(pathname: string): boolean {
@@ -64,6 +64,7 @@ export const config = {
     '/api/upload/:path*',
     '/api/certifications/:path*',
     '/api/activities/:path*',
+    '/api/lab/:path*',
     '/((?!_next/static|_next/image|favicon.ico|uploads/).*)',
   ],
 }

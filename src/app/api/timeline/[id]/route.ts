@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { execute, queryOne } from '@/lib/db'
 import { sanitizeText } from '@/lib/sanitize'
 
+const VALID_STATUS = ['public', 'draft', 'private']
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id }       = await params
@@ -15,14 +17,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const current      = body.current ? 1 : 0
     const description  = body.description  ? sanitizeText(String(body.description)) : null
     const pdfUrl       = body.pdf_url      ? sanitizeText(String(body.pdf_url))     : null
+    const status       = VALID_STATUS.includes(body.status) ? body.status : 'public'
 
     if (!title || !organization || !start_date || !['experience', 'education'].includes(type)) {
       return NextResponse.json({ success: false, error: 'Invalid data' }, { status: 400 })
     }
 
     await execute(
-      'UPDATE `timeline` SET `type`=?, `title`=?, `organization`=?, `location`=?, `start_date`=?, `end_date`=?, `current`=?, `description`=?, `pdf_url`=? WHERE `id`=?',
-      [type, title, organization, location, start_date, end_date, current, description, pdfUrl, id],
+      'UPDATE `timeline` SET `type`=?, `title`=?, `organization`=?, `location`=?, `start_date`=?, `end_date`=?, `current`=?, `description`=?, `pdf_url`=?, `status`=? WHERE `id`=?',
+      [type, title, organization, location, start_date, end_date, current, description, pdfUrl, status, id],
     )
     return NextResponse.json({ success: true })
   } catch (err) {

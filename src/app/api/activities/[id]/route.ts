@@ -3,6 +3,7 @@ import { execute, queryOne } from '@/lib/db'
 import { sanitizeText, sanitizeUrl } from '@/lib/sanitize'
 
 const VALID_TYPES = ['volunteer', 'award', 'publication', 'project', 'other']
+const VALID_STATUS = ['public', 'draft', 'private']
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -15,14 +16,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const date         = body.date         ? sanitizeText(String(body.date))          : null
     const url          = body.url          ? sanitizeUrl(String(body.url))            : null
     const imageUrl     = body.image_url    ? sanitizeText(String(body.image_url))     : null
+    const status       = VALID_STATUS.includes(body.status) ? body.status : 'public'
 
     if (!title) {
       return NextResponse.json({ success: false, error: 'Title is required' }, { status: 400 })
     }
 
     await execute(
-      'UPDATE `activities` SET `type`=?, `title`=?, `organization`=?, `description`=?, `date`=?, `url`=?, `image_url`=? WHERE `id`=?',
-      [type, title, organization, description, date, url, imageUrl, id],
+      'UPDATE `activities` SET `type`=?, `title`=?, `organization`=?, `description`=?, `date`=?, `url`=?, `image_url`=?, `status`=? WHERE `id`=?',
+      [type, title, organization, description, date, url, imageUrl, status, id],
     )
 
     return NextResponse.json({ success: true })

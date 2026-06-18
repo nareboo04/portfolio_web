@@ -43,7 +43,11 @@ INSERT INTO `site_content` (`key`, `value`) VALUES
   ('activities_subheading',     'Volunteering, awards, publications, and other activities.'),
   ('contact_label',             'Get In Touch'),
   ('contact_heading',           'Contact Me'),
-  ('contact_subheading',        'Have a project in mind or just want to say hello? I''d love to hear from you.')
+  ('contact_subheading',        'Have a project in mind or just want to say hello? I''d love to hear from you.'),
+  ('lab_label',                 'My Setup'),
+  ('lab_heading',               'Infrastructure & Lab'),
+  ('lab_subheading',            'The tools, hardware, and platforms that power my work.'),
+  ('section_order',             'about,certifications,infrastructure,projects,skills,timeline,activities,contact')
 ON DUPLICATE KEY UPDATE `key` = `key`;
 
 -- ─────────────────────────────────────────────
@@ -57,7 +61,8 @@ CREATE TABLE IF NOT EXISTS `skills` (
   `sort_order`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   `created_at`  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `icon_url`    VARCHAR(500) DEFAULT NULL,
-  `description` TEXT DEFAULT NULL
+  `description` TEXT DEFAULT NULL,
+  `status`      ENUM('public','draft','private') NOT NULL DEFAULT 'public'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `skills` (`name`, `category`, `level`, `sort_order`) VALUES
@@ -86,7 +91,8 @@ CREATE TABLE IF NOT EXISTS `timeline` (
   `current`     TINYINT(1) NOT NULL DEFAULT 0,
   `description` TEXT,
   `pdf_url`     VARCHAR(500) NULL,
-  `sort_order`  SMALLINT UNSIGNED NOT NULL DEFAULT 0
+  `sort_order`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `status`      ENUM('public','draft','private') NOT NULL DEFAULT 'public'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `timeline` (`type`, `title`, `organization`, `location`, `start_date`, `end_date`, `current`, `description`, `sort_order`) VALUES
@@ -159,7 +165,8 @@ CREATE TABLE IF NOT EXISTS `certifications` (
   `pdf_url`        VARCHAR(500) NULL,
   `image_url`      VARCHAR(500) NULL,
   `sort_order`     SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-  `created_at`     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `created_at`     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `status`         ENUM('public','draft','private') NOT NULL DEFAULT 'public'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ─────────────────────────────────────────────
@@ -175,7 +182,30 @@ CREATE TABLE IF NOT EXISTS `activities` (
   `url`          VARCHAR(500) NULL,
   `image_url`    VARCHAR(500) NULL,
   `sort_order`   SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-  `created_at`   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `created_at`   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `status`       ENUM('public','draft','private') NOT NULL DEFAULT 'public'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ─────────────────────────────────────────────
+-- Infrastructure / Lab
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `lab_sections` (
+  `id`          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `name`        VARCHAR(200) NOT NULL,
+  `description` TEXT NULL,
+  `image_urls`  JSON NULL,
+  `sort_order`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at`  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `status`      ENUM('public','draft','private') NOT NULL DEFAULT 'public'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `lab_items` (
+  `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `section_id` INT UNSIGNED NOT NULL,
+  `name`       VARCHAR(500) NOT NULL,
+  `sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`section_id`) REFERENCES `lab_sections`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Indexes
@@ -186,3 +216,5 @@ CREATE INDEX idx_skills_sort      ON `skills`         (`sort_order`);
 CREATE INDEX idx_timeline_sort    ON `timeline`       (`sort_order`);
 CREATE INDEX idx_certs_sort       ON `certifications` (`sort_order`);
 CREATE INDEX idx_activities_sort  ON `activities`     (`sort_order`);
+CREATE INDEX idx_lab_sections_sort ON `lab_sections`  (`sort_order`);
+CREATE INDEX idx_lab_items_sort   ON `lab_items`      (`section_id`, `sort_order`);

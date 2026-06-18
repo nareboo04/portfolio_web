@@ -24,9 +24,16 @@ function formatDate(date: string | null, _current: boolean): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
+const STATUS_BADGE: Record<string, string> = {
+  draft:   'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  private: 'bg-zinc-200  dark:bg-zinc-700      text-zinc-500  dark:text-zinc-400',
+}
+
 export default function Timeline({ entries, isEditMode, onEdit, onDelete, onAdd, onReordered, content, onContentChange, csrfToken }: TimelineProps) {
   const [active,  setActive]  = useState<'all' | 'experience' | 'education'>('all')
   const [saving,  setSaving]  = useState(false)
+
+  if (!isEditMode && entries.length === 0) return null
 
   const filtered = active === 'all' ? entries : entries.filter((e) => e.type === active)
 
@@ -122,6 +129,11 @@ export default function Timeline({ entries, isEditMode, onEdit, onDelete, onAdd,
                               {entry.organization} · {formatDate(entry.start_date, false)} — {entry.current ? 'Present' : formatDate(entry.end_date, false)}
                             </span>
                           </span>
+                          {entry.status !== 'public' && (
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ${STATUS_BADGE[entry.status]}`}>
+                              {entry.status === 'draft' ? 'Draft' : 'Private'}
+                            </span>
+                          )}
                           {entry.current && (
                             <span className="text-xs text-green-600 dark:text-green-400 font-medium shrink-0 flex items-center gap-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />

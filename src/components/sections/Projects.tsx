@@ -206,6 +206,8 @@ export default function Projects({ projects, isEditMode, onEdit, onDelete, onAdd
     })
   }, [projects, search, category])
 
+  if (!isEditMode && projects.length === 0) return null
+
   return (
     <section id="projects" className="py-24 bg-zinc-50/50 dark:bg-zinc-900/50">
       <div className="section-container">

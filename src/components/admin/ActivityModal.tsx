@@ -20,6 +20,7 @@ const EMPTY = {
   date:         '',
   url:          '',
   image_url:    null as string | null,
+  status:       'public' as Activity['status'],
 }
 
 export default function ActivityModal({ activity, onClose, onSaved }: ActivityModalProps) {
@@ -38,6 +39,7 @@ export default function ActivityModal({ activity, onClose, onSaved }: ActivityMo
         date:         activity.date?.slice(0, 10) ?? '',
         url:          activity.url ?? '',
         image_url:    activity.image_url ?? null,
+        status:       activity.status ?? 'public',
       })
     } else {
       setForm({ ...EMPTY })
@@ -143,6 +145,20 @@ export default function ActivityModal({ activity, onClose, onSaved }: ActivityMo
         <div>
           <label className="block text-xs font-medium text-zinc-500 mb-1.5">URL</label>
           <input className="input" value={form.url} onChange={(e) => setForm((p) => ({ ...p, url: e.target.value }))} placeholder="https://…" />
+        </div>
+
+        {/* Visibility */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-500 mb-1.5">Visibility</label>
+          <select
+            className="input"
+            value={form.status}
+            onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as Activity['status'] }))}
+          >
+            <option value="public">Public</option>
+            <option value="draft">Draft (hidden from visitors)</option>
+            <option value="private">Private (hidden from visitors)</option>
+          </select>
         </div>
 
         {/* Image */}

@@ -17,7 +17,7 @@ const CAT_LABEL: Record<string, string> = {
   frontend: 'Frontend', backend: 'Backend', database: 'Database', devops: 'DevOps', other: 'Other',
 }
 
-const EMPTY = { name: '', category: 'other' as Skill['category'], level: 80, icon_url: '', description: '' }
+const EMPTY = { name: '', category: 'other' as Skill['category'], level: 80, icon_url: '', description: '', status: 'public' as Skill['status'] }
 
 export default function SkillModal({ skill, onClose, onSaved }: SkillModalProps) {
   const { csrfToken } = useAuth()
@@ -33,6 +33,7 @@ export default function SkillModal({ skill, onClose, onSaved }: SkillModalProps)
       level:       skill.level,
       icon_url:    skill.icon_url    ?? '',
       description: skill.description ?? '',
+      status:      skill.status ?? 'public',
     } : { ...EMPTY })
   }, [skill])
 
@@ -74,6 +75,7 @@ export default function SkillModal({ skill, onClose, onSaved }: SkillModalProps)
         level:       form.level,
         icon_url:    form.icon_url    || null,
         description: form.description || null,
+        status:      form.status,
       }
       const res  = await fetch(url, {
         method,
@@ -177,6 +179,20 @@ export default function SkillModal({ skill, onClose, onSaved }: SkillModalProps)
             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
             placeholder="What do you use this for? Any notable experience?"
           />
+        </div>
+
+        {/* Visibility */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-500 mb-1.5">Visibility</label>
+          <select
+            className="input"
+            value={form.status}
+            onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as Skill['status'] }))}
+          >
+            <option value="public">Public</option>
+            <option value="draft">Draft (hidden from visitors)</option>
+            <option value="private">Private (hidden from visitors)</option>
+          </select>
         </div>
 
         {/* Level (hidden from visitors, only for admin reference) */}

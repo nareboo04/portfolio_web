@@ -30,6 +30,7 @@ export async function PATCH(req: NextRequest) {
       'about_bio', 'about_location', 'about_email',
       'about_github', 'about_linkedin', 'about_resume_url', 'about_avatar',
       'meta_title', 'meta_description',
+      'section_order',
     ])
 
     for (const [key, rawValue] of Object.entries(updates)) {

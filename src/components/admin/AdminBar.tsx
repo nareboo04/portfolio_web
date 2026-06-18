@@ -7,9 +7,10 @@ import { cn } from '@/lib/cn'
 
 interface AdminBarProps {
   onAddProject?: () => void
+  onReorderSections?: () => void
 }
 
-export default function AdminBar({ onAddProject }: AdminBarProps) {
+export default function AdminBar({ onAddProject, onReorderSections }: AdminBarProps) {
   const { isAdmin, isEditMode, toggleEditMode } = useAuth()
   const [msgOpen, setMsgOpen] = useState(false)
 
@@ -45,6 +46,12 @@ export default function AdminBar({ onAddProject }: AdminBarProps) {
               className="text-xs px-3 py-1 rounded-lg font-medium bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 hover:border-brand-400 transition-colors"
             >
               + New Project
+            </button>
+            <button
+              onClick={onReorderSections}
+              className="text-xs px-3 py-1 rounded-lg font-medium bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 hover:border-brand-400 transition-colors"
+            >
+              ⇅ Sections
             </button>
             <button
               onClick={() => setMsgOpen(true)}

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { execute, queryOne } from '@/lib/db'
 import { sanitizeText } from '@/lib/sanitize'
 
+const VALID_STATUS = ['public', 'draft', 'private']
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id }      = await params
@@ -11,6 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const level       = Math.min(100, Math.max(0, Number(body.level ?? 80)))
     const icon_url    = body.icon_url    ? sanitizeText(String(body.icon_url))    : null
     const description = body.description ? sanitizeText(String(body.description)) : null
+    const status      = VALID_STATUS.includes(body.status) ? body.status : 'public'
 
     const allowed = ['frontend', 'backend', 'database', 'devops', 'other']
     if (!name || !allowed.includes(category)) {
@@ -18,8 +21,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     await execute(
-      'UPDATE `skills` SET `name`=?, `category`=?, `level`=?, `icon_url`=?, `description`=? WHERE `id`=?',
-      [name, category, level, icon_url, description, id],
+      'UPDATE `skills` SET `name`=?, `category`=?, `level`=?, `icon_url`=?, `description`=?, `status`=? WHERE `id`=?',
+      [name, category, level, icon_url, description, status, id],
     )
     return NextResponse.json({ success: true })
   } catch (err) {

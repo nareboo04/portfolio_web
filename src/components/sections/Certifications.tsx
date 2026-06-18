@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/cn'
 import InlineEditor from '@/components/admin/InlineEditor'
+import ExpandableText from '@/components/ui/ExpandableText'
 import type { Certification, SiteContent } from '@/types'
 
 interface CertificationsProps {
@@ -22,6 +23,11 @@ interface CertificationsProps {
 function formatDate(date: string | null): string {
   if (!date) return ''
   return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+}
+
+const STATUS_BADGE: Record<string, string> = {
+  draft:   'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  private: 'bg-zinc-200  dark:bg-zinc-700      text-zinc-500  dark:text-zinc-400',
 }
 
 export default function Certifications({ certs, isEditMode, onEdit, onDelete, onAdd, onReordered, content, onContentChange, csrfToken }: CertificationsProps) {
@@ -105,6 +111,11 @@ export default function Certifications({ certs, isEditMode, onEdit, onDelete, on
                             <span className="block text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">{cert.title}</span>
                             <span className="block text-xs text-zinc-400 truncate">{cert.issuer} · {formatDate(cert.issue_date)}</span>
                           </span>
+                          {cert.status !== 'public' && (
+                            <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0', STATUS_BADGE[cert.status])}>
+                              {cert.status === 'draft' ? 'Draft' : 'Private'}
+                            </span>
+                          )}
                           <button onClick={() => onEdit?.(cert)} className="btn-secondary text-xs px-2 py-1 shrink-0">Edit</button>
                           <button onClick={() => onDelete?.(cert.id)} className="text-xs px-2 py-1 rounded-lg text-red-600 border border-zinc-200 dark:border-zinc-700 hover:border-red-400 bg-white dark:bg-zinc-800 shrink-0">Del</button>
                         </div>
@@ -145,7 +156,11 @@ export default function Certifications({ certs, isEditMode, onEdit, onDelete, on
                     {cert.expiry_date && ` — ${formatDate(cert.expiry_date)}`}
                   </p>
                   {cert.description && (
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed line-clamp-2">{cert.description}</p>
+                    <ExpandableText
+                      text={cert.description}
+                      lines={2}
+                      className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed"
+                    />
                   )}
 
                   <div className={cn('flex gap-3 mt-2', !cert.credential_url && !cert.pdf_url && 'hidden')}>

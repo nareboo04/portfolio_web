@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { execute, queryOne } from '@/lib/db'
 import { sanitizeText, sanitizeUrl } from '@/lib/sanitize'
 
+const VALID_STATUS = ['public', 'draft', 'private']
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id }         = await params
@@ -14,6 +16,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const credential_url = body.credential_url ? sanitizeUrl(String(body.credential_url)) : null
     const pdfUrl         = body.pdf_url        ? sanitizeText(String(body.pdf_url))       : null
     const imageUrl       = body.image_url      ? sanitizeText(String(body.image_url))     : null
+    const status         = VALID_STATUS.includes(body.status) ? body.status : 'public'
 
     if (!title || !issuer || !issue_date) {
       return NextResponse.json({ success: false, error: 'Invalid data' }, { status: 400 })
@@ -22,9 +25,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await execute(
       `UPDATE \`certifications\` SET
        \`title\`=?, \`issuer\`=?, \`issue_date\`=?, \`expiry_date\`=?, \`description\`=?,
-       \`credential_url\`=?, \`pdf_url\`=?, \`image_url\`=?
+       \`credential_url\`=?, \`pdf_url\`=?, \`image_url\`=?, \`status\`=?
        WHERE \`id\`=?`,
-      [title, issuer, issue_date, expiry_date, description, credential_url, pdfUrl, imageUrl, id],
+      [title, issuer, issue_date, expiry_date, description, credential_url, pdfUrl, imageUrl, status, id],
     )
 
     return NextResponse.json({ success: true })

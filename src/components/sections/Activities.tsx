@@ -35,6 +35,11 @@ const TYPE_COLOR: Record<Activity['type'], string> = {
   other:       'bg-zinc-100   dark:bg-zinc-800       text-zinc-600   dark:text-zinc-300',
 }
 
+const STATUS_BADGE: Record<string, string> = {
+  draft:   'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  private: 'bg-zinc-200  dark:bg-zinc-700      text-zinc-500  dark:text-zinc-400',
+}
+
 function formatDate(date: string | null): string {
   if (!date) return ''
   return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
@@ -152,6 +157,11 @@ export default function Activities({ activities, isEditMode, onEdit, onDelete, o
                             {TYPE_LABEL[act.type]}
                           </span>
                           <span className="flex-1 text-sm font-medium text-zinc-800 dark:text-zinc-100 truncate">{act.title}</span>
+                          {act.status !== 'public' && (
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ${STATUS_BADGE[act.status]}`}>
+                              {act.status === 'draft' ? 'Draft' : 'Private'}
+                            </span>
+                          )}
                           {act.date && <span className="text-xs text-zinc-400 font-mono shrink-0">{formatDate(act.date)}</span>}
                           {act.image_url && (
                             <svg className="w-4 h-4 text-zinc-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

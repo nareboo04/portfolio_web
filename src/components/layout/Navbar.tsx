@@ -1,14 +1,17 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { useNavVisibility } from '@/components/providers/NavVisibilityProvider'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 
 const NAV_LINKS = [
   { href: '#about',            label: 'About'          },
   { href: '#certifications',   label: 'Certifications' },
+  { href: '#infrastructure',   label: 'Lab'            },
   { href: '#projects',         label: 'Projects'       },
   { href: '#skills',           label: 'Skills'         },
   { href: '#timeline',         label: 'Experience'     },
@@ -17,16 +20,33 @@ const NAV_LINKS = [
 ]
 
 export default function Navbar() {
+  const pathname = usePathname()
   const { theme, toggleTheme } = useTheme()
   const { isAdmin, isEditMode, toggleEditMode, logout } = useAuth()
+  const { visibleSections, sectionOrder } = useNavVisibility()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const filteredLinks = isAdmin
+    ? NAV_LINKS
+    : NAV_LINKS.filter((l) => visibleSections.has(l.href.replace('#', '')))
+
+  // Order links to match the admin-defined section order (unknown keys sink to the end)
+  const navLinks = sectionOrder.length
+    ? [...filteredLinks].sort((a, b) => {
+        const ia = sectionOrder.indexOf(a.href.replace('#', ''))
+        const ib = sectionOrder.indexOf(b.href.replace('#', ''))
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+      })
+    : filteredLinks
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  if (pathname === '/login') return null
 
   return (
     <header
@@ -43,7 +63,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <ul className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((l) => (
+          {navLinks.map((l) => (
             <li key={l.href}>
               <a
                 href={l.href}
@@ -101,7 +121,7 @@ export default function Navbar() {
           <button
             onClick={() => setMenuOpen((p) => !p)}
             aria-label="Toggle menu"
-            className="md:hidden p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="md:hidden p-2 rounded-xl text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               {menuOpen
@@ -115,7 +135,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden glass border-t border-zinc-200/50 dark:border-zinc-800/50 px-4 py-4 flex flex-col gap-3">
-          {NAV_LINKS.map((l) => (
+          {navLinks.map((l) => (
             <a
               key={l.href}
               href={l.href}

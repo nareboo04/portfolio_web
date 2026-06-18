@@ -21,6 +21,7 @@ const EMPTY = {
   credential_url: '',
   pdf_url:        null as string | null,
   image_url:      null as string | null,
+  status:         'public' as Certification['status'],
 }
 
 export default function CertificationModal({ cert, onClose, onSaved }: CertificationModalProps) {
@@ -41,6 +42,7 @@ export default function CertificationModal({ cert, onClose, onSaved }: Certifica
         credential_url: cert.credential_url ?? '',
         pdf_url:        cert.pdf_url ?? null,
         image_url:      cert.image_url ?? null,
+        status:         cert.status ?? 'public',
       })
     } else {
       setForm({ ...EMPTY })
@@ -140,6 +142,20 @@ export default function CertificationModal({ cert, onClose, onSaved }: Certifica
         <div>
           <label className="block text-xs font-medium text-zinc-500 mb-1.5">Description</label>
           <textarea rows={2} className="input resize-none" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Short note about this certification…" />
+        </div>
+
+        {/* Visibility */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-500 mb-1.5">Visibility</label>
+          <select
+            className="input"
+            value={form.status}
+            onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as Certification['status'] }))}
+          >
+            <option value="public">Public</option>
+            <option value="draft">Draft (hidden from visitors)</option>
+            <option value="private">Private (hidden from visitors)</option>
+          </select>
         </div>
 
         {/* PDF */}

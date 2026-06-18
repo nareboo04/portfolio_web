@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query, execute } from '@/lib/db'
 import { sanitizeText } from '@/lib/sanitize'
+import { getSession } from '@/lib/auth'
 import type { TimelineEntry } from '@/types'
 
 export async function GET() {
   try {
-    const rows = await query<TimelineEntry>(
-      'SELECT * FROM `timeline` ORDER BY `sort_order` ASC, `start_date` DESC'
-    )
+    const session = await getSession()
+    const isAdmin = !!session
+    const sql = isAdmin
+      ? 'SELECT * FROM `timeline` ORDER BY `sort_order` ASC, `start_date` DESC'
+      : "SELECT * FROM `timeline` WHERE `status` = 'public' ORDER BY `sort_order` ASC, `start_date` DESC"
+    const rows = await query<TimelineEntry>(sql)
     return NextResponse.json({ success: true, data: rows.map(r => ({ ...r, current: Boolean(r.current) })) })
   } catch (err) {
     console.error('[timeline GET]', err)
     return NextResponse.json({ success: false, error: 'Failed to fetch timeline' }, { status: 500 })
   }
 }
+
+const VALID_STATUS = ['public', 'draft', 'private']
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +33,7 @@ export async function POST(req: NextRequest) {
     const current      = body.current ? 1 : 0
     const description  = body.description  ? sanitizeText(String(body.description)) : null
     const pdfUrl       = body.pdf_url      ? sanitizeText(String(body.pdf_url))     : null
+    const status       = VALID_STATUS.includes(body.status) ? body.status : 'public'
 
     if (!title || !organization || !start_date) {
       return NextResponse.json({ success: false, error: 'Title, organization, and start date are required' }, { status: 400 })
@@ -36,9 +43,9 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await execute(
-      `INSERT INTO \`timeline\` (\`type\`, \`title\`, \`organization\`, \`location\`, \`start_date\`, \`end_date\`, \`current\`, \`description\`, \`pdf_url\`, \`sort_order\`)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(t.sort_order), 0) + 1 FROM \`timeline\` t))`,
-      [type, title, organization, location, start_date, end_date, current, description, pdfUrl],
+      `INSERT INTO \`timeline\` (\`type\`, \`title\`, \`organization\`, \`location\`, \`start_date\`, \`end_date\`, \`current\`, \`description\`, \`pdf_url\`, \`status\`, \`sort_order\`)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(t.sort_order), 0) + 1 FROM \`timeline\` t))`,
+      [type, title, organization, location, start_date, end_date, current, description, pdfUrl, status],
     )
     return NextResponse.json({ success: true, data: { id: result.insertId } }, { status: 201 })
   } catch (err) {
